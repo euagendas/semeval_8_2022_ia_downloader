@@ -26,6 +26,13 @@ Usage
 
 .. code::
 
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install git+https://github.com/euagendas/semeval_8_2021_ia_downloader.git
+    python -m semeval_8_2021_ia_downloader.cli --links_file=input.csv --dump_dir=output
+
+.. code::
+
     pip install -r requirements.txt
     cd semeval_8_2021_ia_downloader
     python -m cli --links_file=input.csv --dump_dir=output

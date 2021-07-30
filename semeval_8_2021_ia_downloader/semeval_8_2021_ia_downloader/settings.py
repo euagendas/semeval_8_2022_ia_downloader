@@ -9,8 +9,8 @@
 
 BOT_NAME = 'semeval_8_2021_ia_downloader'
 
-SPIDER_MODULES = ['semeval_8_2021_ia_downloader.spiders']
-NEWSPIDER_MODULE = 'semeval_8_2021_ia_downloader.spiders'
+SPIDER_MODULES = ['semeval_8_2021_ia_downloader.semeval_8_2021_ia_downloader.spiders']
+NEWSPIDER_MODULE = 'semeval_8_2021_ia_downloader.semeval_8_2021_ia_downloader.spiders'
 
 WAYBACK_MACHINE_TIME_RANGE = (20200101, 20210101)
 
@@ -52,7 +52,7 @@ ROBOTSTXT_OBEY = False
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-   'semeval_8_2021_ia_downloader.middlewares.LastSnapshotMiddleware': 543,
+   'semeval_8_2021_ia_downloader.semeval_8_2021_ia_downloader.middlewares.LastSnapshotMiddleware': 543,
 }
 
 # Enable or disable extensions
