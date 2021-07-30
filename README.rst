@@ -18,9 +18,17 @@ semeval 2021 task 8 downloader
 
 Script that scrapes news articles in the 2021 Semeval Task 8 format from the Internet Archive
 
-
 * Free software: GNU General Public License v3
 * Documentation: https://semeval-8-2021-ia-downloader.readthedocs.io.
+
+Usage
+--------
+
+.. code::
+
+    pip install -r requirements.txt
+    cd semeval_8_2021_ia_downloader
+    python -m cli --links_file=input.csv --dump_dir=output
 
 
 Features

@@ -9,6 +9,7 @@ from newspaper import Article
 def parse_article_file(fpath):
     df = pd.read_csv(fpath, index_col='pair_id')
     for pair_id, row in df.iterrows():
+        print(pair_id)
         yield from zip(pair_id.split('_'),
                        row[['link1', 'link2']].values,
                        row[['lang1', 'lang2']].values, )
@@ -53,7 +54,7 @@ class IaArticleSpider(scrapy.Spider):
                             meta_keywords=article.meta_keywords,
                             tags=list(article.tags),
                             authors=article.authors,
-                            publish_date=article.publish_date.ctime(),
+                            publish_date=article.publish_date and article.publish_date.ctime() or None,
                             summary=article.summary,
                             article_html=article.article_html,
                             meta_description=article.meta_description,
