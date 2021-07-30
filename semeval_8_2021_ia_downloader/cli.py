@@ -1,6 +1,5 @@
 """Console script for semeval_8_2021_ia_downloader."""
 import argparse
-import os
 import pathlib
 import sys
 
@@ -12,10 +11,10 @@ def main():
     """Console script for semeval_8_2021_ia_downloader."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--dump_dir', action="store", default="../output", help='dump folder path', required=False)
-    parser.add_argument("--links_file", action="store", default="../test_data.csv", help="File to read", required=False,
+    parser.add_argument("--links_file", action="store", default="../sample_data.csv", help="File to read",
+                        required=False,
                         metavar="INFILE")
 
-    # parser.add_argument('_', nargs='*')
     args = parser.parse_args()
 
     pathlib.Path(args.dump_dir).mkdir(parents=True, exist_ok=True)
