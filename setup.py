@@ -10,9 +10,16 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = [ ]
+requirements = [
+    'setuptools~=57.4.0',
+    'pandas~=1.3.1',
+    'Scrapy~=2.5.0',
+    'itemadapter~=0.3.0',
+    'newspaper3k~=0.2.8',
+    'scrapy-wayback-machine~=1.0.3',
+]
 
-test_requirements = [ ]
+test_requirements = []
 
 setup(
     author="Mattia Samory",
@@ -39,7 +46,7 @@ setup(
     long_description=readme + '\n\n' + history,
     include_package_data=True,
     keywords='semeval_8_2021_ia_downloader',
-    name='semeval_8_2021_ia_downloader',
+    name='semeval_8_2021_ia_downloader-hide_ous',
     packages=find_packages(include=['semeval_8_2021_ia_downloader', 'semeval_8_2021_ia_downloader.*']),
     test_suite='tests',
     tests_require=test_requirements,
