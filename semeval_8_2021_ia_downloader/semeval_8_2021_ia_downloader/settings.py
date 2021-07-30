@@ -12,14 +12,10 @@ BOT_NAME = 'semeval_8_2021_ia_downloader'
 SPIDER_MODULES = ['semeval_8_2021_ia_downloader.spiders']
 NEWSPIDER_MODULE = 'semeval_8_2021_ia_downloader.spiders'
 
-DOWNLOADER_MIDDLEWARES = {
-    'scrapy_wayback_machine.WaybackMachineMiddleware': 5,
-}
-
 WAYBACK_MACHINE_TIME_RANGE = (20200101, 20210101)
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'semeval_8_2021_ia_downloader (+http://www.yourdomain.com)'
+USER_AGENT = 'semeval_8_2021_ia_downloader (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
@@ -55,9 +51,9 @@ ROBOTSTXT_OBEY = True
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    'semeval_8_2021_ia_downloader.middlewares.Semeval82021IaDownloaderDownloaderMiddleware': 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+   'semeval_8_2021_ia_downloader.middlewares.LastSnapshotMiddleware': 543,
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html

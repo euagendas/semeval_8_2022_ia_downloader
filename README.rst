@@ -28,6 +28,11 @@ Features
 
 * TODO
 
+TODO
+--------
+
+* check date range for original articles, to limit search on wayback's cdx
+
 Credits
 -------
 

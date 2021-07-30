@@ -2,11 +2,12 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-
+import pandas as pd
 from scrapy import signals
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
+from scrapy_wayback_machine import WaybackMachineMiddleware
 
 
 class Semeval82021IaDownloaderSpiderMiddleware:
@@ -101,3 +102,11 @@ class Semeval82021IaDownloaderDownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+
+class LastSnapshotMiddleware(WaybackMachineMiddleware):
+
+    def filter_snapshots(self, snapshots):
+        snapshots = super(LastSnapshotMiddleware, self).filter_snapshots(snapshots=snapshots)
+        sorted_snapshots = sorted(snapshots, key=lambda snapshot: snapshot['datetime'].timestamp(), reverse=True)
+        return [next(sorted_snapshots)]
