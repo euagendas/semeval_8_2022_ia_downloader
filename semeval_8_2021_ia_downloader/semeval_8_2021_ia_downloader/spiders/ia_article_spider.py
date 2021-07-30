@@ -1,10 +1,17 @@
+import os.path
+
+import pandas as pd
 import scrapy
 
-from semeval_8_2021_ia_downloader.semeval_8_2021_ia_downloader.file_io import parse_article_file
+
+def parse_article_file(fpath):
+    df = pd.read_csv(fpath, index_col='pair_id')
+    for pair_id, row in df.iterrows():
+        yield from zip(pair_id.split('_'), row[['link1', 'link2']].values)
 
 
 class IaArticleSpider(scrapy.Spider):
-    name = "IA Article"
+    name = "IaArticle"
 
     def start_requests(self):
         for article_id, article_link in parse_article_file(self.links_file):
@@ -13,7 +20,7 @@ class IaArticleSpider(scrapy.Spider):
 
     def parse(self, response):
         article_id = response.meta['article_id']
-        filename = f'quotes-{article_id}.html'
-        with open(filename, 'wb') as f:
+        filename = f'article-{article_id}.html'
+        with open(os.path.join(self.dump_dir, filename), 'wb') as f:
             f.write(response.body)
         self.log(f'Saved file {filename}')
