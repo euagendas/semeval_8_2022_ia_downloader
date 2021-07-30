@@ -31,12 +31,7 @@ Usage
     pip install git+https://github.com/euagendas/semeval_8_2021_ia_downloader.git
     python -m semeval_8_2021_ia_downloader.cli --links_file=input.csv --dump_dir=output
 
-.. code::
-
-    pip install -r requirements.txt
-    cd semeval_8_2021_ia_downloader
-    python -m cli --links_file=input.csv --dump_dir=output
-
+Sample input data in ``sample_data.csv``
 
 Features
 --------
