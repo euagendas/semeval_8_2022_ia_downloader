@@ -18,8 +18,6 @@ semeval 2021 task 8 downloader
 
 Script that scrapes news articles in the 2021 Semeval Task 8 format from the Internet Archive
 
-* Free software: GNU General Public License v3
-* Documentation: https://semeval-8-2021-ia-downloader.readthedocs.io.
 
 Usage
 --------
@@ -33,16 +31,13 @@ Usage
 
 Sample input data in ``sample_data.csv``
 
-Features
---------
-
-* TODO
 
 TODO
 --------
 
 * check date range for original articles, to limit search on wayback's cdx
 * update user agent
+
 
 Credits
 -------
