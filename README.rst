@@ -18,6 +18,9 @@ A pair of articles with id ``0123456789_9876543210`` will be stored in ``output_
 The HTML file contains the web page of the article as obtained from the internet archive.
 The json file contains additional information extracted from the page using the package newspaper3k.
 
+
+The code is available on github_, together with sample_ input data (``sample_data.csv``)
+
 Usage
 --------
 
@@ -27,8 +30,6 @@ Usage
     source venv/bin/activate
     pip install git+https://github.com/euagendas/semeval_8_2021_ia_downloader.git
     python -m semeval_8_2021_ia_downloader.cli --links_file=input.csv --dump_dir=output_dir
-
-The code is available on github_, together with sample input data (``sample_data.csv``)
 
 
 Credits
@@ -40,3 +41,4 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
 .. _github: https://github.com/euagendas/semeval_8_2021_ia_downloader
 .. _homepage: https://euagendas.org/semeval2022
+.. _sample: https://github.com/euagendas/semeval_8_2021_ia_downloader/blob/master/sample_data.csv
