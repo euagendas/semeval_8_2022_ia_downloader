@@ -6,6 +6,8 @@ semeval 2021 task 8 downloader
 .. image:: https://img.shields.io/pypi/v/semeval_8_2021_ia_downloader.svg
         :target: https://pypi.python.org/pypi/semeval_8_2021_ia_downloader
 
+
+
 Script that scrapes news articles in the 2021 Semeval Task 8 format from the Internet Archive.
 
 Details about the data and the task in the project homepage_.
@@ -27,12 +29,6 @@ Usage
     python -m semeval_8_2021_ia_downloader.cli --links_file=input.csv --dump_dir=output_dir
 
 The code is available on github_, together with sample input data (``sample_data.csv``)
-
-
-TODO
---------
-
-* check date range for original articles, to limit search on wayback's cdx
 
 
 Credits
