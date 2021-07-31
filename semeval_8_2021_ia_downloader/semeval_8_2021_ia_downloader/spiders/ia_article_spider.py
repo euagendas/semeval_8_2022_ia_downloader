@@ -1,37 +1,38 @@
 import json
 import os.path
+import pathlib
 
 import pandas as pd
 import scrapy
 from newspaper import Article
 
 
-def parse_article_file(fpath):
-    df = pd.read_csv(fpath, index_col='pair_id')
-    for pair_id, row in df.iterrows():
-        print(pair_id)
-        yield from zip(pair_id.split('_'),
-                       row[['link1', 'link2']].values,
-                       row[['lang1', 'lang2']].values, )
-
-
 class IaArticleSpider(scrapy.Spider):
     name = "IaArticle"
 
     def start_requests(self):
-        for article_id, article_link, article_lang in parse_article_file(self.links_file):
-            yield scrapy.Request(article_link,
-                                 meta={'article_id': article_id,
-                                       'article_link': article_link,
-                                       'article_lang': article_lang,
-                                       })
+        df = pd.read_csv(self.links_file, index_col='pair_id')
+        all_links = set(df.link1.unique())
+        all_links.update(set(df.link2.unique()))
+        for pair_id, row in df.iterrows():
+            for article_id, article_link, article_lang in zip(pair_id.split('_'),
+                                                              row[['link1', 'link2']].values,
+                                                              row[['lang1', 'lang2']].values, ):
+                yield scrapy.Request(article_link,
+                                     meta={'article_id': article_id,
+                                           'article_link': article_link,
+                                           'article_lang': article_lang,
+                                           })
 
     def parse(self, response):
         article_id = response.meta['article_id']
-        filename = f'article-{article_id}.html'
-        with open(os.path.join(self.dump_dir, filename), 'wb') as f:
+        dirname = article_id[-2:]
+        filename = f'{article_id}.html'
+        filepath = os.path.join(self.dump_dir, dirname, filename)
+        pathlib.Path(os.path.dirname(filepath)).mkdir(parents=True, exist_ok=True)
+        with open(filepath, 'wb') as f:
             f.write(response.body)
-        self.log(f'Saved file {filename}')
+        self.log(f'Saved file {filepath}')
 
         article = Article(response.meta['article_link'], language=response.meta['article_lang'])
 
@@ -41,7 +42,6 @@ class IaArticleSpider(scrapy.Spider):
         article.download_state = 2
         article.parse()
 
-        filename = f'article-{article_id}.json'
         article_dict = dict(source_url=article.source_url,
                             url=article.url,
                             title=article.title,
@@ -63,6 +63,9 @@ class IaArticleSpider(scrapy.Spider):
                             meta_data=dict(article.meta_data),
                             canonical_link=article.canonical_link
                             )
-        with open(os.path.join(self.dump_dir, filename), 'w') as f:
+
+        filename = f'{article_id}.json'
+        filepath = os.path.join(self.dump_dir, dirname, filename)
+        with open(filepath, 'w') as f:
             f.write(json.dumps(article_dict))
-        self.log(f'Saved file {filename}')
+        self.log(f'Saved file {filepath}')

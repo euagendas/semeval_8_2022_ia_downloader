@@ -6,18 +6,12 @@ semeval 2021 task 8 downloader
 .. image:: https://img.shields.io/pypi/v/semeval_8_2021_ia_downloader.svg
         :target: https://pypi.python.org/pypi/semeval_8_2021_ia_downloader
 
-.. image:: https://img.shields.io/travis/hide-ous/semeval_8_2021_ia_downloader.svg
-        :target: https://travis-ci.com/hide-ous/semeval_8_2021_ia_downloader
+Script that scrapes news articles in the 2021 Semeval Task 8 format from the Internet Archive.
 
-.. image:: https://readthedocs.org/projects/semeval-8-2021-ia-downloader/badge/?version=latest
-        :target: https://semeval-8-2021-ia-downloader.readthedocs.io/en/latest/?version=latest
-        :alt: Documentation Status
+Details about the data and the task in the project homepage_.
 
-
-
-
-Script that scrapes news articles in the 2021 Semeval Task 8 format from the Internet Archive
-
+A pair of articles with id 0123456789_9876543210 will be stored in ``output_dir/89/0123456789.{json|html}`` and
+``output_dir/10/9876543210.{json|html}`` respectively.
 
 Usage
 --------
@@ -27,16 +21,15 @@ Usage
     python3 -m venv venv
     source venv/bin/activate
     pip install git+https://github.com/euagendas/semeval_8_2021_ia_downloader.git
-    python -m semeval_8_2021_ia_downloader.cli --links_file=input.csv --dump_dir=output
+    python -m semeval_8_2021_ia_downloader.cli --links_file=input.csv --dump_dir=output_dir
 
-Sample input data in ``sample_data.csv``
+The code is available on github_, together with sample input data (``sample_data.csv``)
 
 
 TODO
 --------
 
 * check date range for original articles, to limit search on wayback's cdx
-* update user agent
 
 
 Credits
@@ -46,3 +39,5 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+.. _github: https://github.com/euagendas/semeval_8_2021_ia_downloader
+.. _homepage: https://euagendas.org/semeval2022

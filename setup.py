@@ -50,7 +50,7 @@ setup(
     packages=find_packages(include=['semeval_8_2021_ia_downloader', 'semeval_8_2021_ia_downloader.*']),
     test_suite='tests',
     tests_require=test_requirements,
-    url='https://github.com/hide-ous/semeval_8_2021_ia_downloader',
+    url='https://github.com/euagendas/semeval_8_2021_ia_downloader',
     version='0.1.0',
     zip_safe=False,
 )

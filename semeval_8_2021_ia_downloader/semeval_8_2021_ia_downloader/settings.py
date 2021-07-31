@@ -15,7 +15,7 @@ NEWSPIDER_MODULE = 'semeval_8_2021_ia_downloader.semeval_8_2021_ia_downloader.sp
 WAYBACK_MACHINE_TIME_RANGE = (20200101, 20210101)
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-USER_AGENT = 'semeval_8_2021_ia_downloader (+http://www.yourdomain.com)'
+USER_AGENT = 'semeval_8_2021_ia_downloader (+http://euagendas.org/semeval2022)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
