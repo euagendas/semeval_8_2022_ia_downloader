@@ -1,11 +1,14 @@
 import json
 import os.path
 import pathlib
+from urllib.parse import urlparse
 
 import pandas as pd
+import requests
 import scrapy
 from newspaper import Article
 
+RESOLVE_FQDN_LIST = ['feedproxy.google.com']
 
 class IaArticleSpider(scrapy.Spider):
     name = "IaArticle"
@@ -18,6 +21,11 @@ class IaArticleSpider(scrapy.Spider):
             for article_id, article_link, article_lang in zip(pair_id.split('_'),
                                                               row[['link1', 'link2']].values,
                                                               row[['lang1', 'lang2']].values, ):
+                domain = urlparse(article_link).netloc
+                if domain in RESOLVE_FQDN_LIST:
+                    # resolve link if e.g., coming from news aggregators like feedproxy.google.com
+                    r = requests.head(article_link, allow_redirects=True)
+                    article_link = r.url
                 yield scrapy.Request(article_link,
                                      meta={'article_id': article_id,
                                            'article_link': article_link,
