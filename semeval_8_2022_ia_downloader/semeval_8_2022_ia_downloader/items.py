@@ -6,7 +6,7 @@
 import scrapy
 
 
-class Semeval82021IaDownloaderItem(scrapy.Item):
+class Semeval82022IaDownloaderItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     pass

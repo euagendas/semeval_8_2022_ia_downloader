@@ -10,7 +10,7 @@ from itemadapter import is_item, ItemAdapter
 from scrapy_wayback_machine import WaybackMachineMiddleware
 
 
-class Semeval82021IaDownloaderSpiderMiddleware:
+class Semeval82022IaDownloaderSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the spider middleware does not modify the
     # passed objects.
@@ -57,7 +57,7 @@ class Semeval82021IaDownloaderSpiderMiddleware:
         spider.logger.info('Spider opened: %s' % spider.name)
 
 
-class Semeval82021IaDownloaderDownloaderMiddleware:
+class Semeval82022IaDownloaderDownloaderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the downloader middleware does not modify the
     # passed objects.

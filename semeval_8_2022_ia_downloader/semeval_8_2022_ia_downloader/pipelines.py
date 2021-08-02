@@ -8,6 +8,6 @@
 from itemadapter import ItemAdapter
 
 
-class Semeval82021IaDownloaderPipeline:
+class Semeval82022IaDownloaderPipeline:
     def process_item(self, item, spider):
         return item

@@ -1,14 +1,14 @@
 ==============================
-semeval 2021 task 8 downloader
+semeval 2022 task 8 downloader
 ==============================
 
 
-.. image:: https://img.shields.io/pypi/v/semeval_8_2021_ia_downloader.svg
-        :target: https://pypi.python.org/pypi/semeval_8_2021_ia_downloader
+.. image:: https://img.shields.io/pypi/v/semeval_8_2022_ia_downloader.svg
+        :target: https://pypi.python.org/pypi/semeval_8_2022_ia_downloader
 
 
 
-Script that scrapes news articles in the 2021 Semeval Task 8 format from the Internet Archive.
+Script that scrapes news articles in the 2022 Semeval Task 8 format from the Internet Archive.
 
 Details about the data and the task in the project homepage_.
 
@@ -28,8 +28,8 @@ Usage
 
     python3 -m venv venv
     source venv/bin/activate
-    pip install git+https://github.com/euagendas/semeval_8_2021_ia_downloader.git
-    python -m semeval_8_2021_ia_downloader.cli --links_file=input.csv --dump_dir=output_dir
+    pip install git+https://github.com/euagendas/semeval_8_2022_ia_downloader.git
+    python -m semeval_8_2022_ia_downloader.cli --links_file=input.csv --dump_dir=output_dir
 
 
 Credits
@@ -39,6 +39,6 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
-.. _github: https://github.com/euagendas/semeval_8_2021_ia_downloader
+.. _github: https://github.com/euagendas/semeval_8_2022_ia_downloader
 .. _homepage: https://euagendas.org/semeval2022
-.. _sample: https://github.com/euagendas/semeval_8_2021_ia_downloader/blob/master/sample_data.csv
+.. _sample: https://github.com/euagendas/semeval_8_2022_ia_downloader/blob/master/sample_data.csv

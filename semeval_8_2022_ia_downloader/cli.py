@@ -1,4 +1,4 @@
-"""Console script for semeval_8_2021_ia_downloader."""
+"""Console script for semeval_8_2022_ia_downloader."""
 import argparse
 import os
 import pathlib
@@ -9,7 +9,7 @@ from scrapy.utils.project import get_project_settings
 
 
 def main():
-    """Console script for semeval_8_2021_ia_downloader."""
+    """Console script for semeval_8_2022_ia_downloader."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--dump_dir', action="store", default="articles", help='dump folder path', required=False)
     parser.add_argument("--links_file", action="store", default="sample_data.csv", help="File to read",
@@ -22,7 +22,7 @@ def main():
 
     pathlib.Path(args.dump_dir).mkdir(parents=True, exist_ok=True)
 
-    settings_file_path = 'semeval_8_2021_ia_downloader.semeval_8_2021_ia_downloader.settings'  # The path seen from root, ie. from main.py
+    settings_file_path = 'semeval_8_2022_ia_downloader.semeval_8_2022_ia_downloader.settings'  # The path seen from root, ie. from main.py
     os.environ.setdefault('SCRAPY_SETTINGS_MODULE', settings_file_path)
     scrapy_settings = get_project_settings()
     scrapy_settings.set('LOG_LEVEL', args.log_level)

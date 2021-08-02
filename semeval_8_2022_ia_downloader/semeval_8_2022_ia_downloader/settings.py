@@ -1,4 +1,4 @@
-# Scrapy settings for semeval_8_2021_ia_downloader project
+# Scrapy settings for semeval_8_2022_ia_downloader project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -7,15 +7,15 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'semeval_8_2021_ia_downloader'
+BOT_NAME = 'semeval_8_2022_ia_downloader'
 
-SPIDER_MODULES = ['semeval_8_2021_ia_downloader.semeval_8_2021_ia_downloader.spiders']
-NEWSPIDER_MODULE = 'semeval_8_2021_ia_downloader.semeval_8_2021_ia_downloader.spiders'
+SPIDER_MODULES = ['semeval_8_2022_ia_downloader.semeval_8_2022_ia_downloader.spiders']
+NEWSPIDER_MODULE = 'semeval_8_2022_ia_downloader.semeval_8_2022_ia_downloader.spiders'
 
 WAYBACK_MACHINE_TIME_RANGE = (20180101, 20210707)
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-USER_AGENT = 'semeval_8_2021_ia_downloader (+http://euagendas.org/semeval2022)'
+USER_AGENT = 'semeval_8_2022_ia_downloader (+http://euagendas.org/semeval2022)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -46,13 +46,13 @@ ROBOTSTXT_OBEY = False
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    'semeval_8_2021_ia_downloader.middlewares.Semeval82021IaDownloaderSpiderMiddleware': 543,
+#    'semeval_8_2022_ia_downloader.middlewares.Semeval82021IaDownloaderSpiderMiddleware': 543,
 #}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-   'semeval_8_2021_ia_downloader.semeval_8_2021_ia_downloader.middlewares.LastSnapshotMiddleware': 543,
+   'semeval_8_2022_ia_downloader.semeval_8_2022_ia_downloader.middlewares.LastSnapshotMiddleware': 543,
 }
 
 # Enable or disable extensions
@@ -64,7 +64,7 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 #ITEM_PIPELINES = {
-#    'semeval_8_2021_ia_downloader.pipelines.Semeval82021IaDownloaderPipeline': 300,
+#    'semeval_8_2022_ia_downloader.pipelines.Semeval82021IaDownloaderPipeline': 300,
 #}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
