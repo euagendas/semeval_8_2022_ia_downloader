@@ -47,10 +47,9 @@ class IaArticleSpider(scrapy.Spider):
 
         # set html manually
         article.html = response.body
-        # need to set download_state to 2 for this to work
         article.download_state = 2
-        article.parse()
 
+        article.parse()
         article_dict = dict(source_url=article.source_url,
                             url=article.url,
                             title=article.title,
