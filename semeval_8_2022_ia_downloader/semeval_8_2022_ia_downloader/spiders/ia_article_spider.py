@@ -10,6 +10,7 @@ from newspaper import Article
 
 RESOLVE_FQDN_LIST = ['feedproxy.google.com']
 
+
 class IaArticleSpider(scrapy.Spider):
     name = "IaArticle"
 
