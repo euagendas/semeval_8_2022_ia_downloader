@@ -27,7 +27,7 @@ def main():
     scrapy_settings = get_project_settings()
     scrapy_settings.set('LOG_LEVEL', args.log_level)
 
-    process = CrawlerProcess(get_project_settings())
+    process = CrawlerProcess(scrapy_settings)
 
     process.crawl('IaArticle', links_file=args.links_file,
                   dump_dir=args.dump_dir)

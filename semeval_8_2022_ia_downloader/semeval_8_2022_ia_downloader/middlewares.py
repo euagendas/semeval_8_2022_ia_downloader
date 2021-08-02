@@ -7,6 +7,7 @@ from scrapy import signals
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
+from scrapy.exceptions import IgnoreRequest
 from scrapy_wayback_machine import WaybackMachineMiddleware
 
 
@@ -109,4 +110,6 @@ class LastSnapshotMiddleware(WaybackMachineMiddleware):
     def filter_snapshots(self, snapshots):
         snapshots = super(LastSnapshotMiddleware, self).filter_snapshots(snapshots=snapshots)
         sorted_snapshots = sorted(snapshots, key=lambda snapshot: snapshot['datetime'].timestamp(), reverse=True)
+        if not len(sorted_snapshots):
+            raise IgnoreRequest
         return [sorted_snapshots[0]]
