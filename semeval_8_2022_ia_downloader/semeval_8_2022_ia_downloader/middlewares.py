@@ -105,11 +105,11 @@ class Semeval82022IaDownloaderDownloaderMiddleware:
         spider.logger.info('Spider opened: %s' % spider.name)
 
 
-class LastSnapshotMiddleware(WaybackMachineMiddleware):
+class FirstSnapshotMiddleware(WaybackMachineMiddleware):
 
     def filter_snapshots(self, snapshots):
-        snapshots = super(LastSnapshotMiddleware, self).filter_snapshots(snapshots=snapshots)
-        sorted_snapshots = sorted(snapshots, key=lambda snapshot: snapshot['datetime'].timestamp(), reverse=True)
+        snapshots = super(FirstSnapshotMiddleware, self).filter_snapshots(snapshots=snapshots)
+        sorted_snapshots = sorted(snapshots, key=lambda snapshot: snapshot['datetime'].timestamp(), reverse=False)
         if not len(sorted_snapshots):
             raise IgnoreRequest
         return [sorted_snapshots[0]]
