@@ -109,7 +109,17 @@ class FirstSnapshotMiddleware(WaybackMachineMiddleware):
 
     def filter_snapshots(self, snapshots):
         snapshots = super(FirstSnapshotMiddleware, self).filter_snapshots(snapshots=snapshots)
-        sorted_snapshots = sorted(snapshots, key=lambda snapshot: snapshot['datetime'].timestamp(), reverse=False)
-        if not len(sorted_snapshots):
+        if not len(snapshots):
             raise IgnoreRequest
+        sorted_snapshots = sorted(snapshots, key=lambda snapshot: snapshot['datetime'].timestamp(), reverse=False)
         return [sorted_snapshots[0]]
+
+    def process_response(self, request, response, spider):
+        response_ = super(FirstSnapshotMiddleware, self).process_response(request, response, spider)
+        if response_.status in [404, 502]:
+            # try downloading the original url
+            spider.logger.info('cannot download {}: {}'.format(request.url, response_.status))
+            spider.logger.info('downloading original url {}'.format(
+                request.meta['wayback_machine_original_request'].meta['article_link']))
+            return request.replace(url=request.meta['wayback_machine_original_request'].meta['article_link'])
+        return response_

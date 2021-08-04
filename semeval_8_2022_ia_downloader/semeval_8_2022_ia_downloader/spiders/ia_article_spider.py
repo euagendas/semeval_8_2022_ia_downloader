@@ -7,6 +7,8 @@ import pandas as pd
 import requests
 import scrapy
 from newspaper import Article
+from scrapy.spidermiddlewares.httperror import HttpError
+from twisted.internet.error import DNSLookupError
 
 RESOLVE_FQDN_LIST = ['feedproxy.google.com']
 
@@ -28,10 +30,35 @@ class IaArticleSpider(scrapy.Spider):
                     r = requests.head(article_link, allow_redirects=True)
                     article_link = r.url
                 yield scrapy.Request(article_link,
+                                     errback=self.errback_httpbin,
                                      meta={'article_id': article_id,
                                            'article_link': article_link,
                                            'article_lang': article_lang,
                                            })
+
+    def errback_httpbin(self, failure):
+        # log all errback failures,
+        # in case you want to do something special for some errors,
+        # you may need the failure's type
+        self.logger.error(repr(failure))
+        self.logger.error("in errback")
+
+        # if isinstance(failure.value, HttpError):
+        if failure.check(HttpError):
+            # you can get the response
+            response = failure.value.response
+            self.logger.error('HttpError on %s', response.url)
+
+        # elif isinstance(failure.value, DNSLookupError):
+        elif failure.check(DNSLookupError):
+            # this is the original request
+            request = failure.request
+            self.logger.error('DNSLookupError on %s', request.url)
+
+        # elif isinstance(failure.value, TimeoutError):
+        elif failure.check(TimeoutError):
+            request = failure.request
+            self.logger.error('TimeoutError on %s', request.url)
 
     def parse(self, response):
         article_id = response.meta['article_id']
