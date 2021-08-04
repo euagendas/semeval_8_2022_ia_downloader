@@ -40,5 +40,5 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
 .. _github: https://github.com/euagendas/semeval_8_2022_ia_downloader
-.. _homepage: https://www.euagendas.org/semeval2022
+.. _homepage: http://www.euagendas.org/semeval2022
 .. _sample: https://github.com/euagendas/semeval_8_2022_ia_downloader/blob/master/sample_data.csv
