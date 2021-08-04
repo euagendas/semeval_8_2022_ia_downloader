@@ -2,4 +2,4 @@
 
 __author__ = """Mattia Samory"""
 __email__ = 'mattia.samory@gesis.org'
-__version__ = '0.1.0'
+__version__ = '0.1.1'
