@@ -3,8 +3,8 @@ semeval 2022 task 8 downloader
 ==============================
 
 
-.. image:: https://img.shields.io/pypi/v/semeval_8_2022_ia_downloader.svg
-        :target: https://pypi.python.org/pypi/semeval_8_2022_ia_downloader
+.. image:: https://img.shields.io/pypi/v/semeval-8-2022-ia-downloader.svg
+        :target: https://pypi.org/project/semeval-8-2022-ia-downloader
 
 
 
