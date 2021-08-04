@@ -28,7 +28,7 @@ Usage
 
     python3 -m venv venv
     source venv/bin/activate
-    pip install git+https://github.com/euagendas/semeval_8_2022_ia_downloader.git
+    pip install semeval_8_2022_ia_downloader
     python -m semeval_8_2022_ia_downloader.cli --links_file=input.csv --dump_dir=output_dir
 
 

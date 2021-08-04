@@ -47,7 +47,7 @@ setup(
     long_description=readme + '\n\n' + history,
     include_package_data=True,
     keywords='semeval_8_2022_ia_downloader',
-    name='semeval_8_2022_ia_downloader-hide_ous',
+    name='semeval_8_2022_ia_downloader',
     packages=find_packages(include=['semeval_8_2022_ia_downloader', 'semeval_8_2022_ia_downloader.*']),
     test_suite='tests',
     tests_require=test_requirements,
