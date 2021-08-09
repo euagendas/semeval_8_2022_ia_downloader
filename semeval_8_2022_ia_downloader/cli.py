@@ -111,9 +111,11 @@ def main():
         filename = f'{article_id}.html'
         filepath = os.path.join(args.dump_dir, dirname, filename)
         if not os.path.exists(filepath):
-            print('rescraping ', article_link)
-            parse_article(args.dump_dir, article_id, article_link, article_lang, html=None)
-
+            try:
+                print('rescraping ', article_link)
+                parse_article(args.dump_dir, article_id, article_link, article_lang, html=None)
+            except:
+                print('cannot download', article_link)
     return 0
 
 

@@ -12,7 +12,7 @@ BOT_NAME = 'semeval_8_2022_ia_downloader'
 SPIDER_MODULES = ['semeval_8_2022_ia_downloader.semeval_8_2022_ia_downloader.spiders']
 NEWSPIDER_MODULE = 'semeval_8_2022_ia_downloader.semeval_8_2022_ia_downloader.spiders'
 
-WAYBACK_MACHINE_TIME_RANGE = (20180101, 20210707)
+WAYBACK_MACHINE_TIME_RANGE = (20100101, 20210707)
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = 'semeval_8_2022_ia_downloader (+http://www.euagendas.org/semeval2022)'
