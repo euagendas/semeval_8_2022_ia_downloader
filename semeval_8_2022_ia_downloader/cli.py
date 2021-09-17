@@ -143,28 +143,28 @@ def main():
     # terminate here if there is no wish to attempt re-downloading missing articles
     if retry_strategy == 'ignore':
         return 0
-    # otherwise, try logging or downloading articles again
-    print('handling inaccessible articles')
-    for article_id, article_link, article_lang in parse_input(args.links_file):
-        dirname = article_id[-2:]
-        filename = f'{article_id}.html'
-        filepath = os.path.join(args.dump_dir, dirname, filename)
-        if not os.path.exists(filepath):
-            if retry_strategy == 'original':
-                try:
-                    print('rescraping ', article_link)
-                    parse_article(args.dump_dir, article_id, article_link, article_lang, html=None)
-                    time.sleep(retry_wait)
-                except:
-                    print('cannot download', article_link)
-                    with open(retry_log, 'a+') as f:
-                        f.write(article_link + '\n')
-                    time.sleep(retry_wait)
+    else:
+        # otherwise, try logging or downloading articles again
+        print('handling inaccessible articles')
+        for article_id, article_link, article_lang in parse_input(args.links_file):
+            dirname = article_id[-2:]
+            filename = f'{article_id}.html'
+            filepath = os.path.join(args.dump_dir, dirname, filename)
+            if not os.path.exists(filepath):
+                if retry_strategy == 'original':
+                    try:
+                        print('rescraping ', article_link)
+                        parse_article(args.dump_dir, article_id, article_link, article_lang, html=None)
+                        time.sleep(retry_wait)
+                    except:
+                        print('cannot download', article_link)
+                        with open(retry_log, 'a+') as f:
+                            f.write(article_link + '\n')
+                        time.sleep(retry_wait)
 
-        elif retry_strategy == 'log':
-            print('logging', article_link)
-            with open(retry_log, 'a+') as f:
-                f.write(article_link + '\n')
+            elif retry_strategy == 'log':
+                with open(retry_log, 'a+') as f:
+                    f.write(article_link + '\n')
     return 0
 
 
