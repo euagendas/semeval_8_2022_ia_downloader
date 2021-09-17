@@ -52,8 +52,8 @@ def get_remaining_articles(location, dump_dir):
         filepath = get_local_path_for_article(article_id, dump_dir)
         if not os.path.exists(filepath):
             yield article_id, article_link, article_lang
-        else:
-            print("skipping", filepath)
+        # else:
+        #     print("skipping", filepath)
 
 
 def parse_article(dump_dir, article_id, article_link, article_lang, html=None):
@@ -164,7 +164,7 @@ def main():
         print('downloading inaccessible articles from their original URL')
         for article_id, article_link, article_lang in get_remaining_articles(args.links_file, args.dump_dir):
             try:
-                print('rescraping ', article_link)
+                print('rescraping', article_link)
                 parse_article(args.dump_dir, article_id, article_link, article_lang, html=None)
                 time.sleep(retry_wait)
             except:
@@ -173,10 +173,10 @@ def main():
                     f.write(article_link + '\n')
                 time.sleep(retry_wait)
     elif retry_strategy == 'log':
-        print('logging inaccessible articles to ', retry_log)
+        print('logging inaccessible articles to', retry_log)
         remaining_links = [article_link
                            for _, article_link, _ in get_remaining_articles(args.links_file, args.dump_dir)]
-        with open(retry_log, 'a+', encodng='utf-8') as f:
+        with open(retry_log, 'a+', encoding='utf-8') as f:
             f.write('\n'.join(remaining_links))
     return 0
 
