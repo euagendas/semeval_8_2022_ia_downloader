@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 import pandas as pd
 import requests
 from newspaper import Article
+from requests import HTTPError, RequestException
 
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
@@ -42,8 +43,12 @@ def parse_input(location):
             domain = urlparse(article_link).netloc
             if domain in RESOLVE_FQDN_LIST:
                 # resolve link if e.g., coming from news aggregators like feedproxy.google.com
-                r = requests.head(article_link, allow_redirects=True)
-                article_link = r.url
+                try:
+                    r = requests.head(article_link, allow_redirects=True)
+                    article_link = r.url
+                except (TimeoutError, RequestException) as e:
+                    print(e)
+                    continue
             yield article_id, article_link, article_lang
 
 
