@@ -31,7 +31,7 @@ class TooManyRequestsRetryMiddleware(RetryMiddleware):
             return response
         elif response.status == 429:
             self.crawler.engine.pause()
-            spider.logger.info('Hit 429 error: pausing for 180 seconds')
+            spider.logger.error('Hit 429 error: pausing for 180 seconds')
             time.sleep(180)
             self.crawler.engine.unpause()
             reason = response_status_message(response.status)

@@ -6,14 +6,14 @@ import scrapy
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
 
-from semeval_8_2022_ia_downloader.cli import RESOLVE_FQDN_LIST, parse_article, parse_input
+from semeval_8_2022_ia_downloader.cli import RESOLVE_FQDN_LIST, parse_article, get_remaining_articles
 
 
 class IaArticleSpider(scrapy.Spider):
     name = "IaArticle"
 
     def start_requests(self):
-        for article_id, article_link, article_lang in parse_input(self.links_file):
+        for article_id, article_link, article_lang in get_remaining_articles(self.links_file, self.dump_dir):
             yield scrapy.Request(article_link,
                                  errback=self.errback_httpbin,
                                  meta={'article_id': article_id,

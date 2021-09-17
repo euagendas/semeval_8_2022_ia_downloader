@@ -17,9 +17,16 @@ from scrapy.utils.project import get_project_settings
 
 RESOLVE_FQDN_LIST = ['feedproxy.google.com']
 
+
 # problematic urls:
 # https://www.amazon.com/dp/154173016X/?tag=slatmaga-20
 # news.google.com
+
+def get_local_path_for_article(article_id, dump_dir):
+    dirname = article_id[-2:]
+    filename = f'{article_id}.html'
+    filepath = os.path.join(dump_dir, dirname, filename)
+    return filepath
 
 
 def parse_input(location):
@@ -37,6 +44,13 @@ def parse_input(location):
                 # resolve link if e.g., coming from news aggregators like feedproxy.google.com
                 r = requests.head(article_link, allow_redirects=True)
                 article_link = r.url
+            yield article_id, article_link, article_lang
+
+
+def get_remaining_articles(location, dump_dir):
+    for article_id, article_link, article_lang in parse_input(location):
+        filepath = get_local_path_for_article(article_id, dump_dir)
+        if not os.path.exists(filepath):
             yield article_id, article_link, article_lang
 
 
@@ -142,29 +156,26 @@ def main():
 
     # terminate here if there is no wish to attempt re-downloading missing articles
     if retry_strategy == 'ignore':
-        return 0
-    else:
+        pass
+    elif retry_strategy == 'original':
         # otherwise, try logging or downloading articles again
-        print('handling inaccessible articles')
-        for article_id, article_link, article_lang in parse_input(args.links_file):
-            dirname = article_id[-2:]
-            filename = f'{article_id}.html'
-            filepath = os.path.join(args.dump_dir, dirname, filename)
-            if not os.path.exists(filepath):
-                if retry_strategy == 'original':
-                    try:
-                        print('rescraping ', article_link)
-                        parse_article(args.dump_dir, article_id, article_link, article_lang, html=None)
-                        time.sleep(retry_wait)
-                    except:
-                        print('cannot download', article_link)
-                        with open(retry_log, 'a+') as f:
-                            f.write(article_link + '\n')
-                        time.sleep(retry_wait)
-
-            elif retry_strategy == 'log':
+        print('downloading inaccessible articles from their original URL')
+        for article_id, article_link, article_lang in get_remaining_articles(args.links_file, args.dump_dir):
+            try:
+                print('rescraping ', article_link)
+                parse_article(args.dump_dir, article_id, article_link, article_lang, html=None)
+                time.sleep(retry_wait)
+            except:
+                print('cannot download', article_link)
                 with open(retry_log, 'a+') as f:
                     f.write(article_link + '\n')
+                time.sleep(retry_wait)
+    elif retry_strategy == 'log':
+        print('logging inaccessible articles to ', retry_log)
+        remaining_links = [article_link
+                           for _, article_link, _ in get_remaining_articles(args.links_file, args.dump_dir)]
+        with open(retry_log, 'a+') as f:
+            f.write('\n'.join(remaining_links))
     return 0
 
 
