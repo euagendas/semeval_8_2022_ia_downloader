@@ -174,7 +174,7 @@ def main():
                 time.sleep(retry_wait)
             except:
                 print('cannot download', article_link)
-                with open(retry_log, 'a+') as f:
+                with open(retry_log, 'a+', encoding='utf-8') as f:
                     f.write(article_link + '\n')
                 time.sleep(retry_wait)
     elif retry_strategy == 'log':
