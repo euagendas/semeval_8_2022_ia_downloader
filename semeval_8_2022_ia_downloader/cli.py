@@ -19,10 +19,6 @@ from scrapy.utils.project import get_project_settings
 RESOLVE_FQDN_LIST = ['feedproxy.google.com']
 
 
-# problematic urls:
-# https://www.amazon.com/dp/154173016X/?tag=slatmaga-20
-# news.google.com
-
 def get_local_path_for_article(article_id, dump_dir):
     dirname = article_id[-2:]
     filename = f'{article_id}.html'
@@ -127,7 +123,7 @@ def main():
                         help="""path to the file to log inaccessible articles if --retry=log, or if
                         --retry=original and the article is inaccessible also from the original source""",
                         required=False)
-    parser.add_argument("--retry_delay", action="store", default=10, type=int,
+    parser.add_argument("--retry_delay", action="store", default=3, type=int,
                         help="how many seconds to wait in between requests if --retry=original",
                         required=False)
 
@@ -171,12 +167,11 @@ def main():
             try:
                 print('rescraping', article_link)
                 parse_article(args.dump_dir, article_id, article_link, article_lang, html=None)
-                time.sleep(retry_wait)
             except:
                 print('cannot download', article_link)
                 with open(retry_log, 'a+', encoding='utf-8') as f:
                     f.write(article_link + '\n')
-                time.sleep(retry_wait)
+            time.sleep(retry_wait)
     elif retry_strategy == 'log':
         print('logging inaccessible articles to', retry_log)
         remaining_links = [article_link
