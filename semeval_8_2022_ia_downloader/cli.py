@@ -5,6 +5,7 @@ import os
 import os.path
 import pathlib
 import sys
+import time
 from urllib.parse import urlparse
 
 import pandas as pd
@@ -14,12 +15,17 @@ from newspaper import Article
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 
-
 RESOLVE_FQDN_LIST = ['feedproxy.google.com']
+
+# problematic urls:
+# https://www.amazon.com/dp/154173016X/?tag=slatmaga-20
+# news.google.com
 
 
 def parse_input(location):
     df = pd.read_csv(location, index_col='pair_id')
+
+    df.rename(columns={"url1_lang": "lang1", "url2_lang": "lang2"}, inplace=True)  # patch for different release format
     all_links = set(df.link1.unique())
     all_links.update(set(df.link2.unique()))
     for pair_id, row in df.iterrows():
@@ -89,16 +95,44 @@ def main():
                         required=True,
                         metavar="INFILE")
 
+    parser.add_argument("--retry", action="store", default="original",
+                        help="""when articles are inaccessible from the IA, do:
+                        - "original": try downloading from the original source URL
+                        - "ignore": do nothing
+                        - "log": log inaccessible articles to file
+                        """,
+                        required=False)
+    parser.add_argument("--retry_log", action="store", default="inaccessible_urls.csv",
+                        help="""path to the file to log inaccessible articles if --retry=log, or if
+                        --retry=original and the article is inaccessible also from the original source""",
+                        required=False)
+    parser.add_argument("--retry_delay", action="store", default=10, type=int,
+                        help="how many seconds to wait in between requests if --retry=original",
+                        required=False)
+
     parser.add_argument("--log_level", action="store", default="INFO", help="scrapy log verbosity level",
                         required=False)
+    parser.add_argument("--concurrent_requests", action="store", default=1, type=int,
+                        help="number of requests sent to the IA at one time",
+                        required=False)
+    parser.add_argument("--download_delay", action="store", default=1, type=int,
+                        help="download delay between requests to the IA",
+                        required=False)
+
     args = parser.parse_args()
+    retry_strategy = args.retry
+    retry_wait = args.retry_delay
+    retry_log = args.retry_log
 
     pathlib.Path(args.dump_dir).mkdir(parents=True, exist_ok=True)
 
-    settings_file_path = 'semeval_8_2022_ia_downloader.semeval_8_2022_ia_downloader.settings'  # The path seen from root, ie. from main.py
+    # The path seen from root, ie. from main.py
+    settings_file_path = 'semeval_8_2022_ia_downloader.semeval_8_2022_ia_downloader.settings'
     os.environ.setdefault('SCRAPY_SETTINGS_MODULE', settings_file_path)
     scrapy_settings = get_project_settings()
     scrapy_settings.set('LOG_LEVEL', args.log_level)
+    scrapy_settings.set('CONCURRENT_REQUESTS', args.concurrent_requests)
+    scrapy_settings.set('DOWNLOAD_DELAY', args.download_delay)
 
     process = CrawlerProcess(scrapy_settings)
 
@@ -106,16 +140,31 @@ def main():
                   dump_dir=args.dump_dir)
     process.start()  # the script will block here until the crawling is finished
 
+    # terminate here if there is no wish to attempt re-downloading missing articles
+    if retry_strategy == 'ignore':
+        return 0
+    # otherwise, try logging or downloading articles again
+    print('handling inaccessible articles')
     for article_id, article_link, article_lang in parse_input(args.links_file):
         dirname = article_id[-2:]
         filename = f'{article_id}.html'
         filepath = os.path.join(args.dump_dir, dirname, filename)
         if not os.path.exists(filepath):
-            try:
-                print('rescraping ', article_link)
-                parse_article(args.dump_dir, article_id, article_link, article_lang, html=None)
-            except:
-                print('cannot download', article_link)
+            if retry_strategy == 'original':
+                try:
+                    print('rescraping ', article_link)
+                    parse_article(args.dump_dir, article_id, article_link, article_lang, html=None)
+                    time.sleep(retry_wait)
+                except:
+                    print('cannot download', article_link)
+                    with open(retry_log, 'a+') as f:
+                        f.write(article_link + '\n')
+                    time.sleep(retry_wait)
+
+        elif retry_strategy == 'log':
+            print('logging', article_link)
+            with open(retry_log, 'a+') as f:
+                f.write(article_link + '\n')
     return 0
 
 
