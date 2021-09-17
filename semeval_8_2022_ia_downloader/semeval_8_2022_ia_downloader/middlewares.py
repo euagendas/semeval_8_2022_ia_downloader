@@ -140,6 +140,8 @@ class FirstSnapshotMiddleware(WaybackMachineMiddleware):
 
     def filter_snapshots(self, snapshots):
         snapshots = super(FirstSnapshotMiddleware, self).filter_snapshots(snapshots=snapshots)
+        # keep only HTTP 200 snapshots (ignore 3xx redrects, 4xx, 5xx errors)
+        snapshots = [snapshot for snapshot in snapshots if (snapshot['statuscode'] == '200')]
         if not len(snapshots):
             raise IgnoreRequest
         sorted_snapshots = sorted(snapshots, key=lambda snapshot: snapshot['datetime'].timestamp(), reverse=False)
