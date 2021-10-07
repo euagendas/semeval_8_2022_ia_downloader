@@ -109,3 +109,6 @@ ENV/
 output/
 articles/
 output_dir/
+
+*.csv
+*.zip
