@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 
 import pandas as pd
 import requests
-from newspaper import Article
+from newspaper import Article, Config
 from requests import HTTPError, RequestException
 
 from scrapy.crawler import CrawlerProcess
@@ -27,7 +27,7 @@ def get_local_path_for_article(article_id, dump_dir):
 
 
 def parse_input(location):
-    df = pd.read_csv(location, index_col='pair_id')
+    df = pd.read_csv(location, index_col='pair_id', encoding='utf8')
 
     df.rename(columns={"url1_lang": "lang1", "url2_lang": "lang2"}, inplace=True)  # patch for different release format
     all_links = set(df.link1.unique())
@@ -62,7 +62,6 @@ def parse_article(dump_dir, article_id, article_link, article_lang, html=None):
     filename = f'{article_id}.html'
     filepath = os.path.join(dump_dir, dirname, filename)
     pathlib.Path(os.path.dirname(filepath)).mkdir(parents=True, exist_ok=True)
-
     article = Article(article_link, language=article_lang)
 
     if html is None:
@@ -119,7 +118,8 @@ def main():
                         - "log": log inaccessible articles to file
                         """,
                         required=False)
-    parser.add_argument("--retry_log", action="store", default="inaccessible_urls.csv",
+    parser.add_argument("--retry_log", action="store",
+                        default="inaccessible_urls{}.csv".format(time.strftime('%Y%m%d%H%M%S')),
                         help="""path to the file to log inaccessible articles if --retry=log, or if
                         --retry=original and the article is inaccessible also from the original source""",
                         required=False)
@@ -136,10 +136,17 @@ def main():
                         help="download delay between requests to the IA",
                         required=False)
 
+    parser.add_argument("--user_agent", action="store",
+                        default='semeval_8_2022_ia_downloader (+http://www.euagendas.org/semeval2022)',
+                        type=str,
+                        help="user agent to identify the script with the IA and original source website",
+                        required=False)
+
     args = parser.parse_args()
     retry_strategy = args.retry
     retry_wait = args.retry_delay
     retry_log = args.retry_log
+    headers = {'User-Agent': args.user_agent}
 
     pathlib.Path(args.dump_dir).mkdir(parents=True, exist_ok=True)
 
@@ -150,6 +157,7 @@ def main():
     scrapy_settings.set('LOG_LEVEL', args.log_level)
     scrapy_settings.set('CONCURRENT_REQUESTS', args.concurrent_requests)
     scrapy_settings.set('DOWNLOAD_DELAY', args.download_delay)
+    scrapy_settings.set('USER_AGENT', args.user_agent)
 
     process = CrawlerProcess(scrapy_settings)
 
@@ -166,8 +174,16 @@ def main():
         for article_id, article_link, article_lang in get_remaining_articles(args.links_file, args.dump_dir):
             try:
                 print('rescraping', article_link)
-                parse_article(args.dump_dir, article_id, article_link, article_lang, html=None)
-            except:
+
+                response = requests.get(article_link, headers=headers, allow_redirects=True)
+                if response.status_code != 200:
+                    print('received a', response.status_code, 'status code')
+                    with open(retry_log, 'a+', encoding='utf-8') as f:
+                        f.write(article_link + '\n')
+                else:
+                    parse_article(args.dump_dir, article_id, article_link, article_lang, html=response.content)
+            except Exception as e:
+                print(e)
                 print('cannot download', article_link)
                 with open(retry_log, 'a+', encoding='utf-8') as f:
                     f.write(article_link + '\n')

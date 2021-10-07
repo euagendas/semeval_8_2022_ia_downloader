@@ -47,7 +47,11 @@ class IaArticleSpider(scrapy.Spider):
 
 
     def parse(self, response):
-        parse_article(self.dump_dir, response.meta['article_id'], response.meta['article_link'], response.meta['article_lang'], html=response.body)
+        parse_article(self.dump_dir,
+                      response.meta['article_id'],
+                      response.meta['article_link'],
+                      response.meta['article_lang'],
+                      html=response.body)
 
         # article_id = response.meta['article_id']
         # dirname = article_id[-2:]
