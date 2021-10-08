@@ -160,11 +160,11 @@ def main():
     scrapy_settings.set('DOWNLOAD_DELAY', args.download_delay)
     scrapy_settings.set('USER_AGENT', args.user_agent)
 
-    # process = CrawlerProcess(scrapy_settings)
-    #
-    # process.crawl('IaArticle', links_file=args.links_file,
-    #               dump_dir=args.dump_dir)
-    # process.start()  # the script will block here until the crawling is finished
+    process = CrawlerProcess(scrapy_settings)
+
+    process.crawl('IaArticle', links_file=args.links_file,
+                  dump_dir=args.dump_dir)
+    process.start()  # the script will block here until the crawling is finished
 
     # terminate here if there is no wish to attempt re-downloading missing articles
     if retry_strategy == 'ignore':
