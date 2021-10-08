@@ -168,17 +168,30 @@ def main():
     if retry_strategy == 'ignore':
         pass
     elif retry_strategy == 'original':
+        wayback_prefix = 'https://web.archive.org/web/'
         # otherwise, try logging or downloading articles again
-        print('downloading inaccessible articles from their original URL')
+        print('downloading inaccessible articles')
         for article_id, article_link, article_lang in get_remaining_articles(args.links_file, args.dump_dir):
             try:
                 print('rescraping', article_link)
-
-                response = requests.get(article_link, headers=headers, allow_redirects=True, timeout=timeout)
-                if response.status_code != 200:
-                    print('received a', response.status_code, 'status code')
-                    with open(retry_log, 'a+', encoding='utf-8') as f:
-                        f.write(article_link + '\n')
+                # try scraping from wayback
+                wayback_link = wayback_prefix + article_link
+                wayback_success = False
+                try:
+                    response = requests.get(wayback_link, headers=headers, allow_redirects=True, timeout=timeout)
+                    wayback_success = response.status_code == 200
+                    if not wayback_success:
+                        print('received a', response.status_code, 'status code from wayback')
+                except Exception as e:
+                    print(e)
+                    print('cannot download from wayback url', wayback_link)
+                if not wayback_success:
+                    print('rescraping', article_link, 'from the original source')
+                    response = requests.get(article_link, headers=headers, allow_redirects=True, timeout=timeout)
+                    if response.status_code != 200:
+                        print('received a', response.status_code, 'status code from the original source')
+                        with open(retry_log, 'a+', encoding='utf-8') as f:
+                            f.write(article_link + '\n')
                 else:
                     parse_article(args.dump_dir, article_id, article_link, article_lang, html=response.content)
             except Exception as e:
