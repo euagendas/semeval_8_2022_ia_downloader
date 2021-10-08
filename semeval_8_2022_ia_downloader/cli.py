@@ -53,8 +53,6 @@ def get_remaining_articles(location, dump_dir):
         filepath = get_local_path_for_article(article_id, dump_dir)
         if not os.path.exists(filepath):
             yield article_id, article_link, article_lang
-        # else:
-        #     print("skipping", filepath)
 
 
 def parse_article(dump_dir, article_id, article_link, article_lang, html=None):
