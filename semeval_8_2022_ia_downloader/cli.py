@@ -119,7 +119,7 @@ def main():
                         """,
                         required=False)
     parser.add_argument("--retry_log", action="store",
-                        default="inaccessible_urls{}.csv".format(time.strftime('%Y%m%d%H%M%S')),
+                        default="inaccessible_urls_{}.csv".format(time.strftime('%Y%m%d%H%M%S')),
                         help="""path to the file to log inaccessible articles if --retry=log, or if
                         --retry=original and the article is inaccessible also from the original source""",
                         required=False)
@@ -147,6 +147,7 @@ def main():
     retry_wait = args.retry_delay
     retry_log = args.retry_log
     headers = {'User-Agent': args.user_agent}
+    timeout = 60  # how long to wait for requests when scraping from the original source
 
     pathlib.Path(args.dump_dir).mkdir(parents=True, exist_ok=True)
 
@@ -159,11 +160,11 @@ def main():
     scrapy_settings.set('DOWNLOAD_DELAY', args.download_delay)
     scrapy_settings.set('USER_AGENT', args.user_agent)
 
-    process = CrawlerProcess(scrapy_settings)
-
-    process.crawl('IaArticle', links_file=args.links_file,
-                  dump_dir=args.dump_dir)
-    process.start()  # the script will block here until the crawling is finished
+    # process = CrawlerProcess(scrapy_settings)
+    #
+    # process.crawl('IaArticle', links_file=args.links_file,
+    #               dump_dir=args.dump_dir)
+    # process.start()  # the script will block here until the crawling is finished
 
     # terminate here if there is no wish to attempt re-downloading missing articles
     if retry_strategy == 'ignore':
@@ -175,7 +176,7 @@ def main():
             try:
                 print('rescraping', article_link)
 
-                response = requests.get(article_link, headers=headers, allow_redirects=True)
+                response = requests.get(article_link, headers=headers, allow_redirects=True, timeout=timeout)
                 if response.status_code != 200:
                     print('received a', response.status_code, 'status code')
                     with open(retry_log, 'a+', encoding='utf-8') as f:
