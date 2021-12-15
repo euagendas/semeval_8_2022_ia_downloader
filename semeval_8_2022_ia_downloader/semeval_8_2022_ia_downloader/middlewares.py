@@ -152,10 +152,5 @@ class FirstSnapshotMiddleware(WaybackMachineMiddleware):
         if response_.status in [404, 429, 502]:
             # try downloading the original url
             spider.logger.info('cannot download {}: {}'.format(request.url, response_.status))
-            # spider.logger.info('downloading original url {}'.format(
-            #     request.meta['wayback_machine_original_request'].meta['article_link']))
-            # newrequest = request.replace(url=request.meta['wayback_machine_original_request'].meta['article_link'],
-            #                              meta=request.meta['wayback_machine_original_request'].meta)
-            # return newrequest
             raise IgnoreRequest
         return response_

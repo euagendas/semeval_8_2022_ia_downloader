@@ -13,7 +13,7 @@ import pandas as pd
 import requests
 import tqdm
 from newspaper import Article, Config
-from requests import HTTPError, RequestException
+from requests import RequestException
 
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
@@ -275,7 +275,7 @@ def main():
                                                                                               article_link,
                                                                                               article_lang) in
                                                                             remaining_articles]),
-                           desc='downloading inaccessible articles from the web archive',
+                           desc='downloading inaccessible articles from the original source',
                            total=len(remaining_articles)):
             pass
         original_pool.close()
