@@ -187,7 +187,7 @@ def rescrape_wayback(args):
 
 
 def main():
-    """console script for semeval_8_2022_ia_downloader' run with --help to read about the available runtime arguments.
+    """console script for semeval_8_2022_ia_downloader; run with --help to read about the available runtime arguments.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--dump_dir', action="store", default="articles", help='dump folder path', required=False)
