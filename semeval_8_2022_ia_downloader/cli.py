@@ -22,6 +22,13 @@ RESOLVE_FQDN_LIST = ['feedproxy.google.com']
 
 
 def get_local_path_for_article(article_id, dump_dir, extension='.json'):
+    """
+    maps the `article_id` to the path where the article should be stored
+    :param article_id: the id of the article
+    :param dump_dir: the root folder where to save articles
+    :param extension: the extension for the file that should contain the article
+    :return: the path to the file
+    """
     dirname = article_id[-2:]
     filename = article_id + extension
     filepath = os.path.join(dump_dir, dirname, filename)
@@ -29,6 +36,12 @@ def get_local_path_for_article(article_id, dump_dir, extension='.json'):
 
 
 def parse_input(location):
+    """
+    parses the csv file containing the articles to download
+    :param location: the path to the input file
+    :return: generator of triplets `(article_id, article_link, article_lang)` containing respectively the id
+             of the article, the link to the article, and the language of the article
+    """
     df = pd.read_csv(location, index_col='pair_id', encoding='utf8')
 
     df.rename(columns={"url1_lang": "lang1", "url2_lang": "lang2"}, inplace=True)  # patch for different release format
@@ -55,6 +68,16 @@ def parse_input(location):
 
 
 def get_remaining_articles(location, dump_dir, min_text_length=0):
+    """
+    finds the articles that have not yet been downloaded
+
+    :param location: the path to the input file
+    :param dump_dir: the root folder where to save articles
+    :param min_text_length: include articles that have been downloaded, but for which the `text` entry in the
+           corresponding json file is at most `min_text_length` characters
+    :return: generator of triplets `(article_id, article_link, article_lang)` containing respectively the id
+             of the article, the link to the article, and the language of the article
+    """
     for article_id, article_link, article_lang in parse_input(location):
         filepath = get_local_path_for_article(article_id, dump_dir)
         if not os.path.exists(filepath):
@@ -67,9 +90,18 @@ def get_remaining_articles(location, dump_dir, min_text_length=0):
 
 
 def parse_article(dump_dir, article_id, article_link, article_lang, html=None, article_config=None):
-    dirname = article_id[-2:]
-    filename = f'{article_id}.html'
-    filepath = os.path.join(dump_dir, dirname, filename)
+    """
+    downloads the article, saves the html, uses newspaper3k to parse the article, saves the output as json
+    :param dump_dir: the root folder where to save articles
+    :param article_id: the id of the article
+    :param article_link: the URL of the article to download
+    :param article_lang: the language of the article
+    :param html: the html of the article, if already downloaded; if None, will download again
+    :param article_config: newspaper3k configuration for downloading the article, see:
+            https://newspaper.readthedocs.io/en/latest/user_guide/advanced.html#parameters-and-configurations
+    :return: None
+    """
+    filepath = get_local_path_for_article(article_id=article_id, dump_dir=dump_dir, extension='.html')
     pathlib.Path(os.path.dirname(filepath)).mkdir(parents=True, exist_ok=True)
     article = Article(article_link, language=article_lang, config=article_config)
 
@@ -106,16 +138,21 @@ def parse_article(dump_dir, article_id, article_link, article_lang, html=None, a
                         canonical_link=article.canonical_link
                         )
 
-    filename = f'{article_id}.json'
-    filepath = os.path.join(dump_dir, dirname, filename)
+    filepath = get_local_path_for_article(article_id=article_id, dump_dir=dump_dir, extension='.json')
     with open(filepath, 'w') as f:
         f.write(json.dumps(article_dict))
 
 
 def rescrape_original(args):
+    """
+    scrapes an article
+    :param args: tuple `article_id, article_link, article_lang, article_config, dump_dir, retry_wait` where
+           retry_wait specifies how many seconds to wait after each requests, and the other parameters are defined in
+           `parse_article'
+    :return: None
+    """
     article_id, article_link, article_lang, article_config, dump_dir, retry_wait = args
     try:
-        # print('rescraping', article_link)
         parse_article(dump_dir, article_id, article_link, article_lang, html=None,
                       article_config=article_config)
     except Exception as e:
@@ -125,14 +162,24 @@ def rescrape_original(args):
 
 
 def rescrape_wayback(args):
+    """
+    scrapes an article from the waybackmachine, retrieving the latest archived copy
+    :param args: tuple `article_id, article_link, article_lang, article_config, dump_dir, retry_wait` where
+           retry_wait specifies how many seconds to wait after each requests, and the other parameters are defined in
+           `parse_article'
+    :return: None
+    """
     article_id, article_link, article_lang, article_config, dump_dir, retry_wait = args
     try:
+        # resolve the latest archived copy
+        # https://en.wikipedia.org/wiki/Help:Using_the_Wayback_Machine#Latest_archive_copy
         wayback_prefix = 'https://web.archive.org/web/'
-        # print('rescraping', article_link)
         wayback_link = wayback_prefix + article_link
         response = requests.head(wayback_link, allow_redirects=True)
+        # specify the version of the archived copy as "id_":
+        # id_ Identity - perform no alterations of the original resource, return it as it was archived.
+        # https://en.wikipedia.org/wiki/Help:Using_the_Wayback_Machine#Specific_archive_copy
         wayback_link = response.url[:42] + 'id_' + response.url[42:]
-        # print('translates to', wayback_link)
         rescrape_original((article_id, wayback_link, article_lang, article_config, dump_dir, retry_wait))
     except Exception as e:
         print(e)
@@ -140,7 +187,8 @@ def rescrape_wayback(args):
 
 
 def main():
-    """Console script for semeval_8_2022_ia_downloader."""
+    """console script for semeval_8_2022_ia_downloader' run with --help to read about the available runtime arguments.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--dump_dir', action="store", default="articles", help='dump folder path', required=False)
     parser.add_argument("--links_file", action="store", default="sample_data.csv", help="File to read",
@@ -160,10 +208,11 @@ def main():
                         --retry=original and the article is inaccessible also from the original source""",
                         required=False)
     parser.add_argument("--retry_delay", action="store", default=3, type=int,
-                        help="how many seconds to wait in between requests if --retry=original",
+                        help="how many seconds to wait after each requests if --retry=original",
                         required=False)
     parser.add_argument("--retry_min_chars", action="store", default=50, type=int,
-                        help="retry downloading also articles for which the ",
+                        help="""include articles that have been downloaded, but for which the `text` entry in the
+                         corresponding json file is at most `min_text_length` characters""",
                         required=False)
 
     parser.add_argument("--log_level", action="store", default="INFO", help="scrapy log verbosity level",
@@ -281,6 +330,7 @@ def main():
         original_pool.close()
         original_pool.join()
 
+        # log missing articles
         missing_links = [link for _, link, _ in get_remaining_articles(args.links_file, args.dump_dir, 0)]
         with open(retry_log, 'w+', encoding='utf-8') as f:
             f.write('\n'.join(missing_links))
