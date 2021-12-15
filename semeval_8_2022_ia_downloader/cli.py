@@ -69,8 +69,7 @@ def parse_input(location):
 
 def get_remaining_articles(location, dump_dir, min_text_length=0):
     """
-    finds the articles that have not yet been downloaded
-
+    finds the articles that need downloading
     :param location: the path to the input file
     :param dump_dir: the root folder where to save articles
     :param min_text_length: include articles that have been downloaded, but for which the `text` entry in the
