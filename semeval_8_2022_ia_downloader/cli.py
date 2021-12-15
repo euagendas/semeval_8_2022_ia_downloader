@@ -6,10 +6,12 @@ import os.path
 import pathlib
 import sys
 import time
-from urllib.parse import urlparse
+from multiprocessing import Pool
+from urllib.parse import urlparse, urljoin
 
 import pandas as pd
 import requests
+import tqdm
 from newspaper import Article, Config
 from requests import HTTPError, RequestException
 
@@ -19,9 +21,9 @@ from scrapy.utils.project import get_project_settings
 RESOLVE_FQDN_LIST = ['feedproxy.google.com']
 
 
-def get_local_path_for_article(article_id, dump_dir):
+def get_local_path_for_article(article_id, dump_dir, extension='.json'):
     dirname = article_id[-2:]
-    filename = f'{article_id}.html'
+    filename = article_id + extension
     filepath = os.path.join(dump_dir, dirname, filename)
     return filepath
 
@@ -32,6 +34,10 @@ def parse_input(location):
     df.rename(columns={"url1_lang": "lang1", "url2_lang": "lang2"}, inplace=True)  # patch for different release format
     all_links = set(df.link1.unique())
     all_links.update(set(df.link2.unique()))
+
+    # https://stackoverflow.com/a/36806159
+    # Query parameters are parsed as additional parameters to the API rather than as part of the url
+
     for pair_id, row in df.iterrows():
         for article_id, article_link, article_lang in zip(pair_id.split('_'),
                                                           row[['link1', 'link2']].values,
@@ -48,19 +54,24 @@ def parse_input(location):
             yield article_id, article_link, article_lang
 
 
-def get_remaining_articles(location, dump_dir):
+def get_remaining_articles(location, dump_dir, min_text_length=0):
     for article_id, article_link, article_lang in parse_input(location):
         filepath = get_local_path_for_article(article_id, dump_dir)
         if not os.path.exists(filepath):
             yield article_id, article_link, article_lang
+        else:
+            with open(filepath, encoding='utf8') as f:
+                article_json = json.loads(f.read())
+                if ('text' not in article_json) or (len(article_json['text'].strip()) <= min_text_length):
+                    yield article_id, article_link, article_lang
 
 
-def parse_article(dump_dir, article_id, article_link, article_lang, html=None):
+def parse_article(dump_dir, article_id, article_link, article_lang, html=None, article_config=None):
     dirname = article_id[-2:]
     filename = f'{article_id}.html'
     filepath = os.path.join(dump_dir, dirname, filename)
     pathlib.Path(os.path.dirname(filepath)).mkdir(parents=True, exist_ok=True)
-    article = Article(article_link, language=article_lang)
+    article = Article(article_link, language=article_lang, config=article_config)
 
     if html is None:
         article.download()
@@ -101,6 +112,33 @@ def parse_article(dump_dir, article_id, article_link, article_lang, html=None):
         f.write(json.dumps(article_dict))
 
 
+def rescrape_original(args):
+    article_id, article_link, article_lang, article_config, dump_dir, retry_wait = args
+    try:
+        # print('rescraping', article_link)
+        parse_article(dump_dir, article_id, article_link, article_lang, html=None,
+                      article_config=article_config)
+    except Exception as e:
+        print(e)
+        print('cannot download from', article_link)
+    time.sleep(retry_wait)
+
+
+def rescrape_wayback(args):
+    article_id, article_link, article_lang, article_config, dump_dir, retry_wait = args
+    try:
+        wayback_prefix = 'https://web.archive.org/web/'
+        # print('rescraping', article_link)
+        wayback_link = wayback_prefix + article_link
+        response = requests.head(wayback_link, allow_redirects=True)
+        wayback_link = response.url[:42] + 'id_' + response.url[42:]
+        # print('translates to', wayback_link)
+        rescrape_original((article_id, wayback_link, article_lang, article_config, dump_dir, retry_wait))
+    except Exception as e:
+        print(e)
+        print('cannot download from wayback url', wayback_link)
+
+
 def main():
     """Console script for semeval_8_2022_ia_downloader."""
     parser = argparse.ArgumentParser()
@@ -124,11 +162,14 @@ def main():
     parser.add_argument("--retry_delay", action="store", default=3, type=int,
                         help="how many seconds to wait in between requests if --retry=original",
                         required=False)
+    parser.add_argument("--retry_min_chars", action="store", default=50, type=int,
+                        help="retry downloading also articles for which the ",
+                        required=False)
 
     parser.add_argument("--log_level", action="store", default="INFO", help="scrapy log verbosity level",
                         required=False)
     parser.add_argument("--concurrent_requests", action="store", default=1, type=int,
-                        help="number of requests sent to the IA at one time",
+                        help="number of parallel requests",
                         required=False)
     parser.add_argument("--download_delay", action="store", default=1, type=int,
                         help="download delay between requests to the IA",
@@ -144,11 +185,15 @@ def main():
     retry_strategy = args.retry
     retry_wait = args.retry_delay
     retry_log = args.retry_log
-    headers = {'User-Agent': args.user_agent}
-    timeout = 60  # how long to wait for requests when scraping from the original source
+    min_text_length = args.retry_min_chars
+
+    article_config = Config()
+    article_config.browser_user_agent = args.user_agent
+    article_config.request_timeout = 60
 
     pathlib.Path(args.dump_dir).mkdir(parents=True, exist_ok=True)
 
+    print('Phase 1: scrape after querying the internet archive\'s CDX server')
     # The path seen from root, ie. from main.py
     settings_file_path = 'semeval_8_2022_ia_downloader.semeval_8_2022_ia_downloader.settings'
     os.environ.setdefault('SCRAPY_SETTINGS_MODULE', settings_file_path)
@@ -159,47 +204,87 @@ def main():
     scrapy_settings.set('USER_AGENT', args.user_agent)
 
     process = CrawlerProcess(scrapy_settings)
-
     process.crawl('IaArticle', links_file=args.links_file,
-                  dump_dir=args.dump_dir)
+                  dump_dir=args.dump_dir,
+                  min_text_length=args.retry_min_chars
+                  )
     process.start()  # the script will block here until the crawling is finished
 
-    # terminate here if there is no wish to attempt re-downloading missing articles
     if retry_strategy == 'ignore':
+        # terminate here if there is no wish to attempt re-downloading missing articles
         pass
     elif retry_strategy == 'original':
-        wayback_prefix = 'https://web.archive.org/web/'
         # otherwise, try logging or downloading articles again
-        print('downloading inaccessible articles')
-        for article_id, article_link, article_lang in get_remaining_articles(args.links_file, args.dump_dir):
-            try:
-                print('rescraping', article_link)
-                # try scraping from wayback
-                wayback_link = wayback_prefix + article_link
-                wayback_success = False
-                try:
-                    response = requests.get(wayback_link, headers=headers, allow_redirects=True, timeout=timeout)
-                    wayback_success = response.status_code == 200
-                    if not wayback_success:
-                        print('received a', response.status_code, 'status code from wayback')
-                except Exception as e:
-                    print(e)
-                    print('cannot download from wayback url', wayback_link)
-                if not wayback_success:
-                    print('rescraping', article_link, 'from the original source')
-                    response = requests.get(article_link, headers=headers, allow_redirects=True, timeout=timeout)
-                    if response.status_code != 200:
-                        print('received a', response.status_code, 'status code from the original source')
-                        with open(retry_log, 'a+', encoding='utf-8') as f:
-                            f.write(article_link + '\n')
-                else:
-                    parse_article(args.dump_dir, article_id, article_link, article_lang, html=response.content)
-            except Exception as e:
-                print(e)
-                print('cannot download', article_link)
-                with open(retry_log, 'a+', encoding='utf-8') as f:
-                    f.write(article_link + '\n')
-            time.sleep(retry_wait)
+        print('Phase 2: rescrape using the internet archive\'s /web/ endpoint')
+
+        # try scraping from wayback
+        remaining_articles = list(get_remaining_articles(args.links_file,
+                                                         args.dump_dir,
+                                                         min_text_length))
+        wayback_pool = Pool(processes=args.concurrent_requests)
+        for _ in tqdm.tqdm(wayback_pool.imap_unordered(rescrape_wayback, [(article_id,
+                                                                           article_link,
+                                                                           article_lang,
+                                                                           article_config,
+                                                                           args.dump_dir,
+                                                                           retry_wait) for (article_id,
+                                                                                            article_link,
+                                                                                            article_lang) in
+                                                                          remaining_articles]),
+                           desc='downloading inaccessible articles from the web archive',
+                           total=len(remaining_articles)):
+            pass
+        wayback_pool.close()
+        wayback_pool.join()
+
+        print('Phase 3: rescrape using the internet archive\'s /web/ endpoint, after stripping url query parameters')
+        # try scraping from wayback, stripping query parameters
+        remaining_articles = list(map(lambda x: (x[0], urljoin(x[1], urlparse(x[1]).path), x[2]),
+                                      filter(lambda x: len(urlparse(x[1]).query) > 0,
+                                             get_remaining_articles(args.links_file,
+                                                                    args.dump_dir,
+                                                                    min_text_length))))
+        wayback_noquery_pool = Pool(processes=args.concurrent_requests)
+        for _ in tqdm.tqdm(wayback_noquery_pool.imap_unordered(rescrape_wayback, [(article_id,
+                                                                                   article_link,
+                                                                                   article_lang,
+                                                                                   article_config,
+                                                                                   args.dump_dir,
+                                                                                   retry_wait) for (article_id,
+                                                                                                    article_link,
+                                                                                                    article_lang) in
+                                                                                  remaining_articles]),
+                           desc='downloading articles without query parameters from the web archive',
+                           total=len(remaining_articles)):
+            pass
+        wayback_noquery_pool.close()
+        wayback_noquery_pool.join()
+
+        # try scraping from the original source
+        print('Phase 4: rescrape from the original source')
+        remaining_articles = list(get_remaining_articles(args.links_file,
+                                                         args.dump_dir,
+                                                         min_text_length))
+        original_pool = Pool(processes=args.concurrent_requests)
+        for _ in tqdm.tqdm(original_pool.imap_unordered(rescrape_original, [(article_id,
+                                                                             article_link,
+                                                                             article_lang,
+                                                                             article_config,
+                                                                             args.dump_dir,
+                                                                             retry_wait) for (article_id,
+                                                                                              article_link,
+                                                                                              article_lang) in
+                                                                            remaining_articles]),
+                           desc='downloading inaccessible articles from the web archive',
+                           total=len(remaining_articles)):
+            pass
+        original_pool.close()
+        original_pool.join()
+
+        missing_links = [link for _, link, _ in get_remaining_articles(args.links_file, args.dump_dir, 0)]
+        with open(retry_log, 'w+', encoding='utf-8') as f:
+            f.write('\n'.join(missing_links))
+
     elif retry_strategy == 'log':
         print('logging inaccessible articles to', retry_log)
         remaining_links = [article_link

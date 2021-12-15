@@ -149,7 +149,7 @@ class FirstSnapshotMiddleware(WaybackMachineMiddleware):
 
     def process_response(self, request, response, spider):
         response_ = super(FirstSnapshotMiddleware, self).process_response(request, response, spider)
-        if response_.status in [404, 502]:
+        if response_.status in [404, 429, 502]:
             # try downloading the original url
             spider.logger.info('cannot download {}: {}'.format(request.url, response_.status))
             # spider.logger.info('downloading original url {}'.format(

@@ -17,7 +17,8 @@ requirements = [
     'itemadapter~=0.3.0',
     'newspaper3k~=0.2.8',
     'scrapy-wayback-machine~=1.0.3',
-    'requests~=2.26.0'
+    'requests~=2.26.0',
+    'tqdm~=4.61.2'
 ]
 
 test_requirements = []
